@@ -8,7 +8,13 @@
 
   <article>
     <div id="stats"></div>
+
+    <h2>Core</h2>
     <div id="hits"></div>
+    
+    <h2>PWA</h2>
+    <div id="pwa-hits"></div>
+
   </article>
 
   <aside>
@@ -21,7 +27,6 @@
   <div id="pagination"></div>
 </div>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/instantsearch.js/1/instantsearch.min.css">
 <script src="https://cdn.jsdelivr.net/instantsearch.js/1/instantsearch.min.js"></script>
 
 <script>
@@ -34,15 +39,11 @@
   });
 
   function app(opts) {
+    
+    var searchParameters = {};
+
+    // Get current version from version switcher
     var switcher = document.getElementsByClassName('version-switcher')[0];
-    var searchParameters = {
-
-    };
-
-    var another_search_instance = {
-
-    };
-
     if ( switcher ) {
       var ver = String( switcher.dataset.version );
       searchParameters.facets = ['guide_version'];
@@ -51,19 +52,27 @@
       };
     }
 
+    var pwa_search = instantsearch({
+      appId: opts.appId,
+      apiKey: opts.apiKey,
+      indexName: 'pwa-devdocs'
+    });
+
     const search = instantsearch({
       appId: opts.appId,
       apiKey: opts.apiKey,
       indexName: opts.indexName,
       urlSync: true,
       searchParameters: searchParameters,
-      another_search_instance: another_search_instance
-    });
+      searchFunction: (helper) => {
+        var query = search.helper.state.query;
 
-    var another_search_instance = instantsearch({
-      appId: opts.appId,
-      apiKey: opts.apiKey,
-      indexName: 'pwa-devdocs'
+        if ( pwa_search.helper) {
+          pwa_search.helper.setQuery(query).search();
+        }
+       
+        helper.search();
+      }
     });
 
     search.addWidget(
@@ -72,7 +81,7 @@
         placeholder: 'Search',
       })
     );
-
+    
     search.addWidget(
       instantsearch.widgets.hits({
         container: '#hits',
@@ -111,12 +120,44 @@
       })
     );
 
+    pwa_search.addWidget(
+      instantsearch.widgets.hits({
+        container: '#pwa-hits',
+        hitsPerPage: 10,
+        templates: {
+          item: function ( item ) {
+            var title_highlighted = item._highlightResult.title;
+            var title_plain = item.title;
+            var url = item.url;
+            var pwa_baseurl = 'https://magento-research.github.io/pwa-studio';
+            var link = '<a href="' + pwa_baseurl + url + '">' + title +'</a>';
+            var content = '';
+            // Check if we can show title, if not - at least show URL
+            if (typeof title_highlighted !== 'undefined') {
+              title = title_highlighted.value;
+            } else if (typeof title_plain !== 'undefined') {
+              title = title_plain;
+            } else {
+              title = url;
+            }
+
+            // Check if we have the description of the hit
+            if ( typeof item._highlightResult.content !== 'undefined' ) {
+              content = item._highlightResult.content.value;
+            }
+
+            return '<div class="hit"><h2 class="hit-name">'+ link + '</h2><div class="hit-url">'+ pwa_baseurl + url +'</div><div class="hit-content">' + content + '</div></div>';
+          },
+          empty: '<div id="no-results-message"><p>No results found.</p></div>',
+        },
+      })
+    );
+
     search.addWidget(
       instantsearch.widgets.stats({
         container: '#stats',
       })
     );
-
 
     search.addWidget(
       instantsearch.widgets.refinementList({
@@ -131,9 +172,6 @@
       })
     );
 
-
-
-
     search.addWidget(
       instantsearch.widgets.pagination({
         container: '#pagination',
@@ -142,6 +180,7 @@
     );
 
     search.start();
+    pwa_search.start();
   }
 
 </script>
