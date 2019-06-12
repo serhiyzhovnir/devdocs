@@ -61,6 +61,14 @@ For details about how to initialize a widget in a `.phtml` template, refer to th
 -   [content](#prompt_content)
 -   [focus](#prompt_focus)
 -   [title](#prompt_title)
+-   [modalClass](#prompt_modalClass)
+-   [promptContentTmpl](#prompt_promptContentTmpl)
+-   [value](#prompt_value)
+-   [promptField](#prompt_promptField)
+-   [attributesForm](#prompt_attributesForm)
+-   [attributesField](#prompt_attributesField)
+-   [validation](#prompt_validation)
+-   [validationRules](#prompt_validationRules)
 
 ### `actions` {#prompt_actions}
 Widget callbacks.
@@ -113,20 +121,191 @@ The title of the prompt window.
 
 **Default value**: `''`
 
+### `modalClass` {#prompt_modalClass}
+The CSS class of the prompt window.
+
+**Type**: String.
+
+**Default value**: `'prompt'`
+
+### `promptContentTmpl` {#prompt_promptContentTmpl}
+The template of the prompt popup form.
+
+**Type**: String.
+
+**Default value**: 
+
+```html
+<form <%= formAttr %>>
+    <fieldset class="fieldset">
+        <div class="field">
+            <% if(data.label){ %>
+            <label for="prompt-field-<%- data.id %>" class="label">
+                <span><%= data.label %></span>
+            </label>
+            <% } %>
+            <div class="control">
+                <input type="text" data-role="promptField" id="prompt-field-<%- data.id %>" class="input-text" <%= inputAttr %>/>
+            </div>
+        </div>
+    </fieldset>
+</form>
+```
+
+The file with template [`ui/template/modal/modal-prompt-content.html`].
+
+### `value` {#prompt_value}
+The value of the prompt field.
+
+**Type**: String.
+
+**Default value**: `''`
+
+### `promptField` {#prompt_promptField}
+The prompt field selector.
+
+**Type**: String.
+
+**Default value**: `'[data-role="promptField"]'`
+
+### `attributesForm` {#prompt_attributesForm}
+The attributes for the prompt form.
+
+**Type**: Object.
+
+**Default value**: `{}`
+
+### `attributesField` {#prompt_attributesField}
+The attributes for the prompt field.
+
+**Type**: Object.
+
+**Default value**: `{}`
+
+### `validation` {#prompt_validation}
+Specifies if the prompt form should be validated, when the confirmation button is clicked.
+
+**Type**: Boolean
+
+**Default value**: `false`
+
+### `validationRules` {#prompt_validationRules}
+The array of validation classes which will be added to prompt field.
+
+**Type**: Array
+
+**Default value**: `[]`
+
 ## Events {#prompt_events}
 
 The prompt widget implements the following events:
 
 - `confirm` callback: called when the confirmation button is clicked. The first argument is the value of the input field.
 - `cancel` callback: called when the cancel button is clicked.
-- `always` callback.
+- `always` callback: called when the popup is closed.
 
 ## Keyboard navigation {#prompt_key_navigation}
 
 The keyboard navigation for the alert windows is similar to the [navigation of the modal widget].
 
+## Code Sample
+
+### Code sample of initialization on an element
+
+```html
+<script>
+    require([
+        'jquery',
+        'Magento_Ui/js/modal/prompt'
+    ], function ($) {
+        'use strict';
+
+        $('.prompt-modal-content').prompt({
+            title: 'Prompt Title',
+            modalClass: 'prompt',
+            value: 'Value by default',
+            validation: true,
+            promptField: '[data-role="promptField"]',
+            validationRules: ['required-entry'],
+            attributesForm: {
+                novalidate: 'novalidate',
+                action: ''
+            },
+            attributesField: {
+                name: 'name',
+                'data-validate': '{required:true}',
+                maxlength: '255'
+            }, // attributes for the input field
+            actions: {
+                always: function() {
+                    // do something when the modal is closed
+                },
+                confirm: function () {
+                    // do something when the confirmation button is clicked
+                },
+                cancel: function () {
+                    // do something when the cancel button is clicked
+                }
+            }
+        });
+    });
+</script>
+```
+
+### Code sample of standalone initialization
+
+```html
+<div class="prompt-modal-content">
+    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Adipisci amet aut consequuntur culpa cum, distinctio earum harum, iste magnam nobis numquam pariatur tempora ullam vero vitae. Hic ipsam itaque velit.</p>
+</div>
+
+<script>
+    require([
+        'jquery',
+        'Magento_Ui/js/modal/prompt'
+    ], function ($, prompt) {
+        'use strict';
+
+        prompt({
+            title: 'Prompt Title',
+            content: $('.prompt-modal-content'),
+            modalClass: 'prompt',
+            value: 'Value by default',
+            validation: true,
+            promptField: '[data-role="promptField"]',
+            validationRules: ['required-entry'],
+            attributesForm: {
+                novalidate: 'novalidate',
+                action: ''
+            },
+            attributesField: {
+                name: 'name',
+                'data-validate': '{required:true}',
+                maxlength: '255'
+            },
+            actions: {
+                always: function() {
+                    // do something when the modal is closed
+                },
+                confirm: function () {
+                    // do something when the confirmation button is clicked
+                },
+                cancel: function () {
+                    // do something when the cancel button is clicked
+                }
+            }
+        });
+    });
+</script>
+```
+
+## Result
+
+![Prompt Widget]({{ page.baseurl }}/javascript-dev-guide/widgets/images/prompt-widget-result.png)
+
 [Magento modal widget]: {{page.baseurl}}/javascript-dev-guide/widgets/widget_modal.html
 [`<Magento_Ui_module_dir>/view/base/web/js/modal/prompt.js`]: {{ site.mage2bloburl }}/{{ page.guide_version }}/app/code/Magento/Ui/view/base/web/js/modal/prompt.js
+[`ui/template/modal/modal-prompt-content.html`]: {{ site.mage2bloburl }}/{{ page.guide_version }}/app/code/Magento/Ui/view/base/web/templates/modal/modal-prompt-content.html
 [Magento Admin Pattern Library, the Slide-out Panels, Modal Windows, and Overlays topic.]: {{page.baseurl}}/pattern-library/containers/slideouts-modals-overlays/slideouts-modals-overalys.html#modals
 [JavaScript initialization]: {{page.baseurl}}/javascript-dev-guide/javascript/js_init.html
 [navigation of the modal widget]: {{page.baseurl}}/javascript-dev-guide/widgets/widget_modal.html#key_navigation
